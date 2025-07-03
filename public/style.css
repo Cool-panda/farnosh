@@ -1,0 +1,71 @@
+body {
+    margin: 0;
+    font-family: Tahoma, sans-serif;
+    background-color: #fff0f5;
+    overflow-x: hidden;
+}
+
+.container {
+    text-align: center;
+    padding: 20px;
+}
+
+#poems {
+    margin: 20px 0;
+}
+
+.poem {
+    background: #ffe4e1;
+    padding: 15px;
+    margin: 10px auto;
+    border-radius: 10px;
+    width: 60%;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.pagination button {
+    margin: 10px;
+    padding: 10px 20px;
+    border: none;
+    background-color: #ff69b4;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#poemForm textarea {
+    width: 60%;
+    height: 80px;
+    border-radius: 5px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+#poemForm button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #ff69b4;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.heart {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    background: red;
+    clip-path: polygon(50% 0%, 61% 10%, 70% 20%, 80% 30%, 90% 40%, 95% 50%, 100% 60%, 90% 70%, 80% 80%, 70% 90%, 50% 100%, 30% 90%, 20% 80%, 10% 70%, 0% 60%, 5% 50%, 10% 40%, 20% 30%, 30% 20%, 39% 10%);
+    animation: fall 5s linear infinite;
+}
+
+@keyframes fall {
+    0% {
+        top: -10%;
+        opacity: 1;
+    }
+    100% {
+        top: 110%;
+        opacity: 0;
+    }
+}
