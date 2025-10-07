@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>کتاب ورق‌زن — نسخهٔ شخصی‌سازی‌شده</title>
+  <style>
+    :root {
+      --w: 900px;
+      --h: 620px;
+      --paper: #fff;
+      --bg: linear-gradient(180deg,#f0f3f7,#f9fbff);
+      --spine-width: 10px;
+      --page-shadow: rgba(10,10,20,0.18);
+      font-family: "Vazirmatn", Tahoma, Arial, sans-serif;
+    }
+
+   html, body {
+  height: 100%;
+  margin: 0;
+  background: linear-gradient(135deg, #a8c0ff 0%, #e6e9f0 50%, #b0c4de 100%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+    .wrap{width:var(--w);max-width:96%;}
+    .stage{width:100%;height:var(--h);position:relative;perspective:2200px;}
+    .book{position:relative;width:100%;height:100%;transform-style:preserve-3d;}
+    .spine{position:absolute;left:50%;top:0;bottom:0;width:var(--spine-width);background:linear-gradient(180deg,#dfe6ee,#cfd8e3);transform:translateX(-50%);border-radius:4px;z-index:999}
+    .stack{position:absolute;top:0;bottom:0;left:50%;width:50%;pointer-events:auto}
+    .leaf{position:absolute;top:0;left:0;width:200%;height:100%;transform-style:preserve-3d;transform-origin:left center;}
+    .side{position:absolute;top:0;height:100%;width:50%;overflow:hidden;background:var(--paper);border-radius:6px;border:1px solid rgba(0,0,0,0.06);box-shadow:0 12px 30px var(--page-shadow);backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;padding:20px}
+    .front{right:0;}
+    .back{left:0;transform:rotateY(180deg);}
+    .page-inner img{width:100%;height:360px;object-fit:cover;border-radius:6px;margin-bottom:12px;background:#ddd}
+    .caption{font-size:18px;color:#222;text-align:center}
+    .pnum{position:absolute;bottom:12px;font-size:13px;color:rgba(0,0,0,0.45)}
+    .leaf.flipping{transition:transform 900ms cubic-bezier(.2,.8,.2,1);z-index:2000}
+    .leaf.flipped{transform:rotateY(-180deg);}
+    .side::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;border-radius:6px;background:linear-gradient(90deg, rgba(0,0,0,0.04), rgba(255,255,255,0) 25%);mix-blend-mode:multiply}
+    .side.back::before{background:linear-gradient(270deg, rgba(0,0,0,0.035), rgba(255,255,255,0) 25%)}
+    .leaf.flipping .side{box-shadow:0 18px 40px rgba(5,10,20,0.25)}
+    .controls{display:flex;justify-content:center;gap:10px;margin-top:12px}
+    button{padding:10px 14px;border-radius:8px;border:1px solid rgba(0,0,0,0.08);background:#fff;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="stage">
+      <div class="book" id="book">
+        <div class="spine"></div>
+        <div class="stack" id="stack"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button id="first">|&lt; اول</button>
+      <button id="prev">◀ قبلی</button>
+      <button id="next">بعدی ▶</button>
+      <button id="last">آخر &gt;|</button>
+    </div>
+  </div>
+
+  <script>
+    // ۱۰ صفحه با توضیح برای راحتی
+    const pages = [
+      {img:'far1.jpg', txt:'به نامت ای فروغ شام تارم، ای فرنوش جان        تو روشنی دادی به جان خسته و حیران من'},
+      {img:'far2.jpg', txt:'چو نور صبح دمیدی از دلِ شب‌های تنهایی    شدی امید و عشق و شور هر دوران من'},
+      {img:'far3.jpg', txt:'ز چشم سیاهت زندگی و زیبایی می ریزد    که می‌دمد از آن بهار در قلب ویران من'},
+      {img:'far4.jpg', txt:'به خنده‌ات شکوفه زنی در باغ دل خاموش   تو آمدی و سبز شد جان و جهان من'},
+      {img:'far5.jpg', txt:'نبودم آن‌کس که نور عاشقی دیده باشم    تو آمدی و آتش عشق شد ایمان من'},
+      {img:'far6.jpg', txt:' نسیم نام تو وزید و رفت غم از خاطر   که چون تویی چراغ دل، روشن بر جان من'},
+      {img:'far7.jpg', txt:'با هر نگاهت آیه‌ای ز لطف خالق می افتد  تو معجزه‌گری درون دنیا طوفان من '},
+      {img:'far8.jpg', txt:'اگر ز دامن تو دور گردم، ای محبوب ناز  بگیرد آسمان دل، بمیرد جان من'},
+      {img:'far9.jpg', txt:' جهان بی‌تو تیره است و با تو نور محض گردد باز  دل گرفتارت شد، تویی سرود جان بیمار من'},
+      {img:'far10.jpg', txt:'به عمر خویش جز به عشق تو نیافتم معنا    که با «فرنوش» شد بهشت، این زندگان من  ' },
+    ];
+
+    const stack = document.getElementById('stack');
+    const leafCount = Math.ceil(pages.length / 2);
+    const leaves = [];
+
+    for(let i=0;i<leafCount;i++){
+      const leaf = document.createElement('div');
+      leaf.className = 'leaf';
+      leaf.style.left = `calc(-${i * 4}px)`;
+      leaf.style.zIndex = 1000 - i;
+
+      const front = document.createElement('div'); front.className = 'side front';
+      front.innerHTML = `<div class="page-inner"><img alt="اینجا عکس شماره ${i*2+1}" src="${pages[i*2]?.img}"></div><div class="caption">${pages[i*2]?.txt}</div><div class="pnum">${i*2+1}</div>`;
+
+      const back = document.createElement('div'); back.className = 'side back';
+      back.innerHTML = `<div class="page-inner"><img alt="اینجا عکس شماره ${i*2+2}" src="${pages[i*2+1]?.img}"></div><div class="caption">${pages[i*2+1]?.txt}</div><div class="pnum">${i*2+2}</div>`;
+
+      leaf.appendChild(back);
+      leaf.appendChild(front);
+      stack.appendChild(leaf);
+      leaves.push(leaf);
+    }
+
+    let currentLeaf = 0;
+    let isAnimating = false;
+
+    function flipForward(){
+      if(isAnimating || currentLeaf >= leafCount) return;
+      isAnimating = true;
+      const lf = leaves[currentLeaf];
+      lf.style.zIndex = 3000;
+      lf.classList.add('flipping');
+      requestAnimationFrame(()=> lf.classList.add('flipped'));
+      lf.addEventListener('transitionend', function onEnd(e){
+        if(e.propertyName !== 'transform') return;
+        lf.classList.remove('flipping');
+        lf.style.zIndex = 500 + currentLeaf;
+        currentLeaf++;
+        isAnimating = false;
+        lf.removeEventListener('transitionend', onEnd);
+      });
+    }
+
+    function flipBackward(){
+      if(isAnimating || currentLeaf <= 0) return;
+      isAnimating = true;
+      const idx = currentLeaf - 1;
+      const lf = leaves[idx];
+      lf.style.zIndex = 3000;
+      lf.classList.add('flipping');
+      requestAnimationFrame(()=> lf.classList.remove('flipped'));
+      lf.addEventListener('transitionend', function onEnd(e){
+        if(e.propertyName !== 'transform') return;
+        lf.classList.remove('flipping');
+        lf.style.zIndex = 1000 - idx;
+        currentLeaf--;
+        isAnimating = false;
+        lf.removeEventListener('transitionend', onEnd);
+      });
+    }
+
+    document.getElementById('next').addEventListener('click', flipForward);
+    document.getElementById('prev').addEventListener('click', flipBackward);
+    document.getElementById('first').addEventListener('click', ()=>{ while(currentLeaf>0) flipBackward(); });
+    document.getElementById('last').addEventListener('click', ()=>{ while(currentLeaf<leafCount) flipForward(); });
+
+    stack.addEventListener('click', e=>{
+      const rect = stack.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      if(x > rect.width/2) flipForward(); else flipBackward();
+    });
+  </script>
+</body>
+</html>
